@@ -24,7 +24,7 @@ $aria2ExePath = "$aria2Dir\aria2c.exe"
 $sessionFile="$aria2Dir\.aria2.session"
 $uriHandler="$aria2Dir\aria2-uri-handler.ps1"
 $scheme = "aria2"
-$command = "mshta vbscript:Execute(""CreateObject('Wscript.Shell').Run 'powershell -NoLogo -Command """"& ''$uriHandler'' ''%1''""""', 0 : window.close"")"
+$command = "mshta vbscript:Execute(""CreateObject(""""Wscript.Shell"""").Run """"powershell -NoLogo -Command """"""""& '$uriHandler' '%1'"""""""""""", 0 : window.close"")"
 
 
 $nssmUrl = "https://nssm.cc/ci/nssm-2.24-101-g897c7ad.zip"
@@ -112,7 +112,7 @@ Remove-Item $aria2Zip
 # Create the aria2 uri handler
 @"
 param (
-    [string]$uri
+    [string]`$uri
 )
 
 Add-Type -TypeDefinition @`'
@@ -134,19 +134,19 @@ public class UrlHelper {
 `'@ -Language CSharp
 
 # Validate input
-if (-not $uri) {
+if (-not `$uri) {
     Write-Host "No URI provided."
     exit
 }
 
 # Unescape the URL
-$decodedPath = [UrlHelper]::UnescapeUrl(($uri -replace "^aria2://browse/path=", ""))
+`$decodedPath = [UrlHelper]::UnescapeUrl((`$uri -replace "^aria2://browse/path=", ""))
 
 # Check if the file exists
-if (Test-Path $decodedPath -PathType Leaf) {
-    Start-Process -FilePath "explorer.exe" -ArgumentList "/select,`"$decodedPath`""
+if (Test-Path `$decodedPath -PathType Leaf) {
+    Start-Process -FilePath "explorer.exe" -ArgumentList "/select,``"`$decodedPath``"`"
 } else {
-    Write-Host "File not found: $decodedPath"
+    Write-Host "File not found: `$decodedPath"
 }
 "@ | Out-File -Encoding utf8 $uriHandler
 
