@@ -24,7 +24,7 @@ $aria2ExePath = "$aria2Dir\aria2c.exe"
 $sessionFile="$aria2Dir\.aria2.session"
 $uriHandler="$aria2Dir\aria2-uri-handler.ps1"
 $scheme = "aria2"
-$command = "mshta vbscript:Execute(""CreateObject('Wscript.Shell').Run 'powershell -NoLogo -Command \"\"\"\"& ''$uriHandler'' ''%1''\"\"\"\"', 0 : window.close"")"
+$command = "mshta vbscript:Execute(""CreateObject('Wscript.Shell').Run 'powershell -NoLogo -Command """"& ''$uriHandler'' ''%1''""""', 0 : window.close"")"
 
 
 $nssmUrl = "https://nssm.cc/ci/nssm-2.24-101-g897c7ad.zip"
@@ -52,7 +52,7 @@ if ($serviceExists) {
 
 	# Remove the registry keys
 	Remove-Item -Path "HKCU:\Software\Classes\$scheme" -Recurse -Force -ErrorAction SilentlyContinue
-	Write-Host "Unregistered $scheme:// URI scheme successfully!"
+	Write-Host "Unregistered ${scheme}:// URI scheme successfully!"
     } else {
         Write-Host "Aria2 installation remains unchanged."
     }
@@ -231,7 +231,7 @@ Set-ItemProperty -Path "HKCU:\Software\Classes\$scheme" -Name "URL Protocol" -Va
 New-Item -Path "HKCU:\Software\Classes\$scheme\shell\open\command" -Force | Out-Null
 Set-ItemProperty -Path "HKCU:\Software\Classes\$scheme\shell\open\command" -Name "(Default)" -Value $command
 
-Write-Host "Registered $scheme:// URI scheme successfully!"
+Write-Host "Registered ${scheme}:// URI scheme successfully!"
 
 Start-Sleep -Seconds 1  # Small delay to ensure completion
 Remove-Item -Path $MyInvocation.MyCommand.Path -Force
