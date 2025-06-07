@@ -115,7 +115,7 @@ param (
     [string]$uri
 )
 
-Add-Type -TypeDefinition @'
+Add-Type -TypeDefinition @`'
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -131,7 +131,7 @@ public class UrlHelper {
         return buffer.ToString();
     }
 }
-'@ -Language CSharp
+`'@ -Language CSharp
 
 # Validate input
 if (-not $uri) {
