@@ -1,12 +1,18 @@
 # if this file cannot run by execution policy, copy this line below and paste into powershell window then drag-drop this script into window and it will run
 Set-ExecutionPolicy RemoteSigned -scope Process -Force
 
-# for admin privileges if isn't running as an admin
+# Define temp file path
+$tempScript = "$env:TEMP\aria2.ps1"
+
+# Save current script contents to temp location
+Copy-Item -Path $MyInvocation.MyCommand.Source -Destination $tempScript -Force
+
+# Check if running as admin
 if (!(New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) 
 {
-	#elevate script and exit current non-elevated runtime
-	Start-Process -FilePath 'powershell' -ArgumentList ('-File', $MyInvocation.MyCommand.Source, $args | %{ $_ }) -Verb RunAs
-	exit
+    # Elevate script and exit current non-elevated runtime
+    Start-Process -FilePath 'powershell' -ArgumentList ('-File', $tempScript, $args | %{ $_ }) -Verb RunAs
+    exit
 }
 
 # Define variables
@@ -166,3 +172,7 @@ Write-Host "Installing Aria2 as a service via NSSM..."
 # Start the service
 Start-Service -Name $serviceName
 Write-Host "Aria2 service installed successfully using NSSM!"
+
+# Remove script file after execution
+Start-Sleep -Seconds 2  # Give some time for the script to finish
+Start-Process -FilePath "cmd.exe" -ArgumentList "/c timeout 2 & del `"$tempScript`"" -WindowStyle Hidden
