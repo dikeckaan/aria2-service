@@ -22,6 +22,10 @@ $aria2Url = "https://github.com/aria2/aria2/releases/latest/download/$downloadFi
 $aria2Zip = "$aria2Dir\aria2.zip"
 $aria2ExePath = "$aria2Dir\aria2c.exe"
 $sessionFile="$aria2Dir\.aria2.session"
+$uriHandler="$aria2Dir\aria2-uri-handler.ps1"
+$scheme = "aria2"
+$command = "mshta vbscript:Execute(""CreateObject('Wscript.Shell').Run 'powershell -NoLogo -Command \"\"\"\"& ''$uriHandler'' ''%1''\"\"\"\"', 0 : window.close"")"
+
 
 $nssmUrl = "https://nssm.cc/ci/nssm-2.24-101-g897c7ad.zip"
 $nssmZip = "$aria2Dir\nssm.zip"
@@ -45,6 +49,10 @@ if ($serviceExists) {
             Remove-Item -Path $aria2Dir -Recurse -Force
             Write-Host "Aria2 files deleted successfully."
         }
+
+	# Remove the registry keys
+	Remove-Item -Path "HKCU:\Software\Classes\$scheme" -Recurse -Force -ErrorAction SilentlyContinue
+	Write-Host "Unregistered $scheme:// URI scheme successfully!"
     } else {
         Write-Host "Aria2 installation remains unchanged."
     }
@@ -100,6 +108,51 @@ $aria2Archive.Dispose()
 
 # Remove Aria2 zip file after extraction
 Remove-Item $aria2Zip
+
+# Create the aria2 uri handler
+@"
+param (
+    [string]$uri
+)
+
+$t = '[DllImport("user32.dll")] public static extern bool ShowWindow(int handle, int state);'
+add-type -name win -member $t -namespace native
+[native.win]::ShowWindow(([System.Diagnostics.Process]::GetCurrentProcess() | Get-Process).MainWindowHandle, 0)
+
+Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+using System.Text;
+
+public class UrlHelper {
+    [DllImport("Shlwapi.dll", CharSet = CharSet.Unicode)]
+    public static extern int UrlUnescapeW(string pszUrl, StringBuilder pszUnescaped, ref int pcchUnescaped, int dwFlags);
+    
+    public static string UnescapeUrl(string url) {
+        StringBuilder buffer = new StringBuilder(1024);
+        int length = buffer.Capacity;
+        UrlUnescapeW(url, buffer, ref length, 0);
+        return buffer.ToString();
+    }
+}
+"@ -Language CSharp
+
+# Validate input
+if (-not $uri) {
+    Write-Host "No URI provided."
+    exit
+}
+
+# Unescape the URL
+$decodedPath = [UrlHelper]::UnescapeUrl(($uri -replace "^aria2://browse/path=", ""))
+
+# Check if the file exists
+if (Test-Path $decodedPath -PathType Leaf) {
+    Start-Process -FilePath "explorer.exe" -ArgumentList "/select,`"$decodedPath`""
+} else {
+    Write-Host "File not found: $decodedPath"
+}
+"@ | Out-File -Encoding utf8 $uriHandler
 
 # Create the configuration file
 @"
@@ -169,6 +222,16 @@ Write-Host "Installing Aria2 as a service via NSSM..."
 # Start the service
 Start-Service -Name $serviceName
 Write-Host "Aria2 service installed successfully using NSSM!"
+
+# Create registry keys
+New-Item -Path "HKCU:\Software\Classes\$scheme" -Force | Out-Null
+Set-ItemProperty -Path "HKCU:\Software\Classes\$scheme" -Name "(Default)" -Value "URL:$scheme Protocol"
+Set-ItemProperty -Path "HKCU:\Software\Classes\$scheme" -Name "URL Protocol" -Value ""
+
+New-Item -Path "HKCU:\Software\Classes\$scheme\shell\open\command" -Force | Out-Null
+Set-ItemProperty -Path "HKCU:\Software\Classes\$scheme\shell\open\command" -Name "(Default)" -Value $command
+
+Write-Host "Registered $scheme:// URI scheme successfully!"
 
 Start-Sleep -Seconds 1  # Small delay to ensure completion
 Remove-Item -Path $MyInvocation.MyCommand.Path -Force
