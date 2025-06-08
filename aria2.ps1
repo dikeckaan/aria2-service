@@ -188,7 +188,7 @@ if (-not `$uri) {
 `$decodedPath = [UrlHelper]::UnescapeUrl((`$uri -replace "^aria2://browse/path=", ""))
 
 # Check if the file exists
-if ((Test-Path $decodedPath) -or (Test-Path $decodedPath -PathType Leaf)) {
+if ((Test-Path `$decodedPath) -or (Test-Path `$decodedPath -PathType Leaf)) {
     [ExplorerHelper]::SelectInFileExplorer(`$decodedPath)
 } else {
     Write-Host "File not found: `$decodedPath"
