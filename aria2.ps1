@@ -16,7 +16,7 @@ $aria2Platform = "win-64bit"
 $aria2Build = "build1"
 
 $aria2Dir = "$env:SystemDrive\aria2"
-$downloadDir = "$env:USERPROFILE\Downloads"
+$downloadDir = (New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
 $downloadFileName = "aria2-$aria2Version-$aria2Platform-$aria2Build"
 $aria2Url = "https://github.com/aria2/aria2/releases/latest/download/$downloadFileName.zip"
 $aria2Zip = "$aria2Dir\aria2.zip"
