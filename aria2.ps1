@@ -128,12 +128,18 @@ public class UrlHelper {
     public static string UnescapeUrl(string url) {
         StringBuilder buffer = new StringBuilder(1024);
         int length = buffer.Capacity;
-        UrlUnescapeW(url, buffer, ref length, 0);
+        UrlUnescapeW(url, buffer, ref length, 0x02000000);
         return buffer.ToString();
     }
 }
 
 public class ExplorerHelper {
+
+    [DllImport("Shlwapi.dll", CharSet = CharSet.Unicode)]
+    public static extern bool PathIsDirectoryW(string pszPath);
+
+    [DllImport("Shell32.dll", CharSet = CharSet.Unicode)]
+    public static extern IntPtr ShellExecute(IntPtr hwnd, string lpOperation, string lpFile, string lpParameters, string lpDirectory, int nShowCmd);
 
     [DllImport("shell32.dll", ExactSpelling=true)]
     public static extern void ILFree(IntPtr pidlList);
@@ -150,6 +156,12 @@ public class ExplorerHelper {
             throw new ArgumentNullException("fullPath");
 
         fullPath = Path.GetFullPath(fullPath);
+
+ 	if (PathIsDirectoryW(fullPath))
+        {
+            ShellExecute(IntPtr.Zero, "open", fullPath, "", "", 1);
+	    return;
+        }
 
         IntPtr pidlList = ILCreateFromPathW(fullPath);
         if (pidlList != IntPtr.Zero)
