@@ -267,5 +267,5 @@ Remove-Item -Path $MyInvocation.MyCommand.Path -Force
 
 '@ | Out-File -Encoding utf8 "$env:TEMP\aria2.ps1"
 
-Start-Process -FilePath 'powershell' -ArgumentList ('-File', "$env:TEMP\aria2.ps1", $args | %{ $_ }) -Verb RunAs
+Start-Process -FilePath 'powershell' -ArgumentList ('-ExecutionPolicy ByPass', '-File', "$env:TEMP\aria2.ps1", $args | %{ $_ }) -Verb RunAs
 exit
