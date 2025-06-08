@@ -6,7 +6,7 @@ Set-ExecutionPolicy RemoteSigned -scope Process -Force
 if (!(New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) 
 {
 	#elevate script and exit current non-elevated runtime
-	Start-Process -FilePath 'powershell' -ArgumentList ('-File', $MyInvocation.MyCommand.Source, $args | %{ $_ }) -Verb RunAs
+	Start-Process -FilePath 'powershell' -ArgumentList ('-ExecutionPolicy ByPass', '-File', $MyInvocation.MyCommand.Source, $args | %{ $_ }) -Verb RunAs
 	exit
 }
 
@@ -24,7 +24,7 @@ $aria2ExePath = "$aria2Dir\aria2c.exe"
 $sessionFile="$aria2Dir\.aria2.session"
 $uriHandler="$aria2Dir\aria2-uri-handler.ps1"
 $scheme = "aria2"
-$command = "conhost.exe --headless powershell -noninteractive -WindowStyle Hidden -File ""C:\aria2\aria2-uri-handler.ps1"" ""%1"""
+$command = "conhost.exe --headless powershell -noninteractive -WindowStyle Hidden -ExecutionPolicy ByPass -File ""C:\aria2\aria2-uri-handler.ps1"" ""%1"""
 
 
 $nssmUrl = "https://nssm.cc/ci/nssm-2.24-101-g897c7ad.zip"
