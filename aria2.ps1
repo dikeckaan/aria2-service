@@ -24,7 +24,7 @@ $aria2ExePath = "$aria2Dir\aria2c.exe"
 $sessionFile="$aria2Dir\.aria2.session"
 $uriHandler="$aria2Dir\aria2-uri-handler.ps1"
 $scheme = "aria2"
-$command = "mshta vbscript:Execute(""CreateObject(""""Wscript.Shell"""").Run """"powershell -NoLogo -Command """"""""& '$uriHandler' '%1'"""""""""""", 0 : window.close"")"
+$command = "conhost.exe --headless powershell -noninteractive -WindowStyle Hidden -File ""C:\aria2\aria2-uri-handler.ps1"" ""%1"""
 
 
 $nssmUrl = "https://nssm.cc/ci/nssm-2.24-101-g897c7ad.zip"
@@ -117,6 +117,7 @@ param (
 
 Add-Type -TypeDefinition @`'
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -129,6 +130,38 @@ public class UrlHelper {
         int length = buffer.Capacity;
         UrlUnescapeW(url, buffer, ref length, 0);
         return buffer.ToString();
+    }
+}
+
+public class ExplorerHelper {
+
+    [DllImport("shell32.dll", ExactSpelling=true)]
+    public static extern void ILFree(IntPtr pidlList);
+
+    [DllImport("shell32.dll", CharSet=CharSet.Unicode, ExactSpelling=true)]
+    public static extern IntPtr ILCreateFromPathW(string pszPath);
+
+    [DllImport("shell32.dll", ExactSpelling=true)]
+    public static extern int SHOpenFolderAndSelectItems(IntPtr pidlList, uint cild, IntPtr children, uint dwFlags);
+
+    public static void SelectInFileExplorer(string fullPath)
+    {
+        if (string.IsNullOrEmpty(fullPath))
+            throw new ArgumentNullException("fullPath");
+
+        fullPath = Path.GetFullPath(fullPath);
+
+        IntPtr pidlList = ILCreateFromPathW(fullPath);
+        if (pidlList != IntPtr.Zero)
+            try
+            {
+                // Open parent folder and select item
+                Marshal.ThrowExceptionForHR(SHOpenFolderAndSelectItems(pidlList, 0, IntPtr.Zero, 0));
+            }
+            finally
+            {
+                ILFree(pidlList);
+            }
     }
 }
 `'@ -Language CSharp
@@ -144,7 +177,7 @@ if (-not `$uri) {
 
 # Check if the file exists
 if (Test-Path `$decodedPath -PathType Leaf) {
-    Start-Process -FilePath "explorer.exe" -ArgumentList "/select,``"`$decodedPath``"`"
+    [ExplorerHelper]::SelectInFileExplorer(`$decodedPath)
 } else {
     Write-Host "File not found: `$decodedPath"
 }
