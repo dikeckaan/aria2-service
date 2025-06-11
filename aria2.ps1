@@ -213,6 +213,8 @@ auto-save-interval=10
 disk-cache=64M
 file-allocation=falloc
 no-file-allocation-limit=64M
+split=16
+max-connection-per-server=8
 save-session-interval=10
 input-file=.aria2.session
 save-session=.aria2.session
@@ -254,7 +256,7 @@ peer-id-prefix=-TR3000-
 
 # Install Aria2 service via NSSM
 Write-Host "Installing Aria2 as a service via NSSM..."
-& $nssmExePath install $serviceName $aria2ExePath "--conf-path=$configFile --dir=$downloadDir"
+& $nssmExePath install $serviceName $aria2ExePath "-j 16 --conf-path=$configFile --dir=$downloadDir"
 & $nssmExePath set $serviceName AppDirectory $aria2Dir
 & $nssmExePath set $serviceName DisplayName "Aria2 Download Manager"
 & $nssmExePath set $serviceName Description "Aria2 running as a service"
