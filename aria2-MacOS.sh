@@ -32,7 +32,7 @@ cat > "$CONFIG_FILE" << EOF
 # RPC Settings
 enable-rpc=true
 rpc-allow-origin-all=true
-rpc-listen-all=true
+rpc-listen-all=false
 rpc-listen-port=6800
 
 # File System and Download Settings
