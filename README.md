@@ -32,3 +32,5 @@ This setup requires `aria2c` to be pre-installed, preferably via **Homebrew**.
       * The downloads directory is `~/Downloads`.
       * The connection for Motrix is `http://localhost:6800`.
       * Error and output logs are found in `~/Library/Application Support/aria2/*.log`.
+
+  * After aria2c installation, intall the [Aria2 Explorer](https://chromewebstore.google.com/detail/aria2-explorer/mpkodccbngfoacfalldjimigbofkhgjn) extension in chromium based browser then setup it.
