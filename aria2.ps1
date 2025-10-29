@@ -206,7 +206,7 @@ if ((Test-Path `$decodedPath) -or (Test-Path `$decodedPath -PathType Leaf)) {
 ################ RPC ################
 enable-rpc=true
 rpc-allow-origin-all=true
-rpc-listen-all=true
+rpc-listen-all=false
 
 ################ File system ################
 auto-save-interval=10
